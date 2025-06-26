@@ -1,12 +1,12 @@
 import os
 import json
 import random
-# from openai import OpenAI # This would be the actual import for OpenAI
+# from openai import OpenAI # 这才是 OpenAI 的实际导入语句
 
-# Attempt to get API key (though it won't be used in the mocked version)
+# 尝试获取 API 密钥（尽管在模拟版本中不会使用）
 # OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 # if not OPENAI_API_KEY:
-# print("Warning: OPENAI_API_KEY environment variable not set. LLM calls will be mocked.")
+# print("警告：未设置 OPENAI_API_KEY 环境变量。LLM 调用将被模拟。")
 # client = None
 # else:
 # client = OpenAI(api_key=OPENAI_API_KEY)
@@ -14,45 +14,45 @@ import random
 
 def get_mock_llm_response(news_items: list, market_data: dict) -> dict:
     """
-    Generates a mocked LLM response based on input data, adhering to the PRD's JSON structure.
+    根据输入数据生成模拟的 LLM 响应，并遵循 PRD 的 JSON 结构。
     """
-    sentiments = ["Optimistic", "Pessimistic", "Neutral", "Mixed"]
+    sentiments = ["乐观", "悲观", "中性", "复杂"]
     chosen_sentiment = random.choice(sentiments)
 
-    executive_summary = "Market activity was notable today, with diverse movements across sectors."
+    executive_summary = "今日市场活动显著，各板块走势分化。"
     if market_data:
         sp500_change = market_data.get("S&P 500", {}).get("change_percent", "0%")
         nasdaq_change = market_data.get("NASDAQ Composite", {}).get("change_percent", "0%")
         if "N/A" not in sp500_change and "N/A" not in nasdaq_change:
-             executive_summary = f"Markets showed {chosen_sentiment.lower()} trends; S&P 500 moved {sp500_change} and NASDAQ {nasdaq_change}."
+             executive_summary = f"市场呈现{chosen_sentiment.lower()}趋势；标普 500 指数变动 {sp500_change}，纳斯达克指数变动 {nasdaq_change}。"
 
 
-    sentiment_reason = f"The market sentiment is {chosen_sentiment.lower()} due to a variety of factors observed in today's trading session and news flow."
-    if chosen_sentiment == "Optimistic":
-        sentiment_reason = "Positive economic indicators and strong corporate earnings in key sectors contributed to an optimistic outlook."
-    elif chosen_sentiment == "Pessimistic":
-        sentiment_reason = "Concerns over inflation and potential interest rate hikes led to a pessimistic sentiment among investors."
-    elif chosen_sentiment == "Neutral":
-        sentiment_reason = "The market showed no clear direction, with gains in some sectors offset by losses in others, resulting in a neutral stance."
-    elif chosen_sentiment == "Mixed":
-        sentiment_reason = "A mixed sentiment prevailed as positive tech performance contrasted with broader market uncertainties."
+    sentiment_reason = f"由于今日交易时段和新闻流中观察到的多种因素，市场情绪为{chosen_sentiment.lower()}。"
+    if chosen_sentiment == "乐观":
+        sentiment_reason = "积极的经济指标和关键行业强劲的企业盈利促成了乐观的前景。"
+    elif chosen_sentiment == "悲观":
+        sentiment_reason = "对通货膨胀和潜在加息的担忧导致投资者情绪悲观。"
+    elif chosen_sentiment == "中性":
+        sentiment_reason = "市场没有明确的方向，一些行业的上涨被其他行业的下跌所抵消，导致了中性的立场。"
+    elif chosen_sentiment == "复杂":
+        sentiment_reason = "由于积极的科技股表现与更广泛的市场不确定性形成对比，市场情绪复杂。"
 
     top_stories_mock = []
     if news_items:
-        # Select up to 3 news items for the mock summary
+        # 为模拟摘要选择最多 3 个新闻条目
         selected_news = news_items[:3]
         for i, news_item in enumerate(selected_news):
             top_stories_mock.append({
-                "title": news_item.get("title", f"Sample News Title {i+1}"),
-                "summary": f"This is a mocked LLM summary for '{news_item.get('title', 'this news item')}'. It highlights key aspects and potential market impact. The content is generated for testing purposes.",
+                "title": news_item.get("title", f"示例新闻标题 {i+1}"),
+                "summary": f"这是针对“{news_item.get('title', '此新闻条目')}”的模拟 LLM 摘要。它突出了关键方面和潜在的市场影响。内容是为测试目的生成的。",
                 "url": news_item.get("url", "#"),
                 "source": news_item.get("source", "MockSource")
             })
-    else: # Fallback if no news items
+    else: # 如果没有新闻条目则回退
         for i in range(3):
             top_stories_mock.append({
-                "title": f"Placeholder News Title {i+1}",
-                "summary": "This is a placeholder summary as no specific news items were provided to the LLM.",
+                "title": f"占位新闻标题 {i+1}",
+                "summary": "这是一个占位摘要，因为没有向 LLM 提供特定的新闻条目。",
                 "url": "#",
                 "source": "PlaceholderSource"
             })
@@ -69,35 +69,35 @@ def get_mock_llm_response(news_items: list, market_data: dict) -> dict:
 
 async def generate_summary_from_llm(news_items: list, market_data: dict) -> dict:
     """
-    Generates a market summary. Uses a mocked response for now.
-    Constructs a prompt (for future real LLM call) and expects a JSON response.
+    生成市场摘要。目前使用模拟响应。
+    构建提示（用于将来实际的 LLM 调用）并期望 JSON 响应。
     """
-    print("Attempting to generate summary from LLM (currently mocked)...")
+    print("正在尝试从 LLM 生成摘要（当前为模拟）...")
 
-    # Constructing the prompt based on PRD F3 (useful for future real implementation)
+    # 根据 PRD F3 构建提示（对将来实际实现有用）
     prompt_content = f"""
-    Analyze the following financial market data and news items.
-    Provide a concise, data-driven summary in JSON format.
+    分析以下金融市场数据和新闻条目。
+    以 JSON 格式提供简洁、数据驱动的摘要。
 
-    Market Data:
+    市场数据:
     {json.dumps(market_data, indent=2)}
 
-    News Items (Top 10 provided, select and summarize the 3 most impactful):
+    新闻条目（提供前 10 条，选择并总结影响最大的 3 条）:
     {json.dumps(news_items, indent=2)}
 
-    Instructions:
-    1.  "executive_summary": A single, highly condensed sentence summarizing the day's market activity and overall tone.
+    说明:
+    1.  "executive_summary": 一个高度浓缩的句子，总结当天的市场活动和整体基调。
     2.  "market_sentiment":
-        *   "sentiment": Choose one: "Optimistic", "Pessimistic", "Neutral", "Mixed".
-        *   "reason": Briefly explain the factors driving this sentiment, referencing market data or news if applicable.
-    3.  "top_stories": An array of exactly 3 objects, each representing a key news story. For each story:
-        *   "title": The original title of the news story.
-        *   "summary": Your concise summary of the news story and its potential market impact (2-3 sentences).
-        *   "url": The original URL of the news story.
-        *   "source": The original source of the news (e.g., "Reuters", "Yahoo Finance").
+        *   "sentiment": 选择一个："乐观"、"悲观"、"中性"、"复杂"。
+        *   "reason": 简要解释驱动这种情绪的因素，如果适用，请参考市场数据或新闻。
+    3.  "top_stories": 一个包含正好 3 个对象的数组，每个对象代表一个关键新闻报道。对于每个报道：
+        *   "title": 新闻报道的原始标题。
+        *   "summary": 您对新闻报道及其潜在市场影响的简洁摘要（2-3 句话）。
+        *   "url": 新闻报道的原始 URL。
+        *   "source": 新闻的原始来源（例如，“路透社”、“雅虎财经”）。
 
-    Return ONLY the JSON object, with no additional text or explanations.
-    The JSON structure MUST be:
+    仅返回 JSON 对象，不含其他文本或解释。
+    JSON 结构必须是:
     {{
       "executive_summary": "string",
       "market_sentiment": {{
@@ -117,88 +117,88 @@ async def generate_summary_from_llm(news_items: list, market_data: dict) -> dict
 
     # if client:
     #     try:
-    #         print("Making actual call to OpenAI API...") # This part won't run if client is None
-    #         response = await client.chat.completions.create( # Use await for async client if available, else sync
-    #             model="gpt-3.5-turbo-0125", # Or your preferred model that supports JSON mode
-    #             messages=[{"role": "system", "content": "You are a financial news summarizer. Respond in JSON format."},
+    #         print("正在对 OpenAI API 进行实际调用...") # 如果 client 为 None，则此部分不会运行
+    #         response = await client.chat.completions.create( # 如果可用，则对异步客户端使用 await，否则使用同步
+    #             model="gpt-3.5-turbo-0125", # 或您首选的支持 JSON 模式的模型
+    #             messages=[{"role": "system", "content": "你是一个财经新闻摘要器。以 JSON 格式回应。"},
     #                       {"role": "user", "content": prompt_content}],
     #             response_format={"type": "json_object"}
     #         )
     #         llm_output_json_str = response.choices[0].message.content
-    #         print("Received response from OpenAI API.")
+    #         print("已收到来自 OpenAI API 的响应。")
     #     except Exception as e:
-    #         print(f"Error calling OpenAI API: {e}")
-    #         print("Falling back to mocked LLM response due to API error.")
+    #         print(f"调用 OpenAI API 时出错：{e}")
+    #         print("由于 API 错误，将回退到模拟的 LLM 响应。")
     #         llm_output_json_str = json.dumps(get_mock_llm_response(news_items, market_data))
     # else:
-    #     # Mocked LLM call if API key is not available or client is not initialized
-    #     print("Using mocked LLM response.")
+    #     # 如果 API 密钥不可用或客户端未初始化，则进行模拟的 LLM 调用
+    #     print("正在使用模拟的 LLM 响应。")
     llm_output_json_str = json.dumps(get_mock_llm_response(news_items, market_data))
 
     try:
         parsed_response = json.loads(llm_output_json_str)
-        # Basic validation against the PRD structure
+        # 根据 PRD 结构进行基本验证
         if not all(key in parsed_response for key in ["executive_summary", "market_sentiment", "top_stories"]):
-            raise ValueError("LLM response missing one or more main keys.")
+            raise ValueError("LLM 响应缺少一个或多个主要密钥。")
         if not isinstance(parsed_response["market_sentiment"], dict) or \
            not all(key in parsed_response["market_sentiment"] for key in ["sentiment", "reason"]):
-             raise ValueError("LLM response missing market_sentiment keys.")
+             raise ValueError("LLM 响应缺少 market_sentiment 密钥。")
         if not isinstance(parsed_response["top_stories"], list):
-            raise ValueError("LLM response 'top_stories' is not a list.")
-        # Could add more validation for each story item if needed.
+            raise ValueError("LLM 响应 'top_stories' 不是列表。")
+        # 如果需要，可以为每个报道项目添加更多验证。
 
-        print("LLM response parsed and validated successfully.")
+        print("LLM 响应已成功解析和验证。")
         return parsed_response
     except json.JSONDecodeError as e:
-        print(f"Critical: Error decoding LLM JSON response: {e}. Response was: {llm_output_json_str}")
-        raise ValueError(f"LLM returned malformed JSON. Content: {llm_output_json_str[:500]}...") # Show part of the content
+        print(f"严重：解码 LLM JSON 响应时出错：{e}。响应为：{llm_output_json_str}")
+        raise ValueError(f"LLM 返回了格式错误的 JSON。内容：{llm_output_json_str[:500]}...") # 显示部分内容
     except ValueError as e:
-        print(f"Critical: LLM response validation error: {e}. Response was: {llm_output_json_str}")
-        raise # Re-raise the ValueError for the caller to handle
+        print(f"严重：LLM 响应验证错误：{e}。响应为：{llm_output_json_str}")
+        raise # 重新引发 ValueError 以供调用者处理
 
 
 if __name__ == '__main__':
-    # Example usage (for testing this module directly)
+    # 示例用法（用于直接测试此模块）
     async def main_test():
-        print("\n--- Testing LLM Service (Mocked) ---")
+        print("\n--- 测试 LLM 服务（模拟）---")
         sample_news = [
-            {"title": "Tech Rally Continues Amidst AI Hype", "url": "https://example.com/news_tech_rally", "source": "Yahoo Finance"},
-            {"title": "Fed Hints at Rate Cuts Later This Year", "url": "https://example.com/news_fed_rates", "source": "Reuters"},
-            {"title": "Oil Prices Climb on Supply Concerns", "url": "https://example.com/news_oil_prices", "source": "Reuters"},
-            {"title": "Retail Sales Show Unexpected Slowdown", "url": "https://example.com/news_retail_slowdown", "source": "Yahoo Finance"},
+            {"title": "科技股在人工智能热潮中持续上涨", "url": "https://example.com/news_tech_rally", "source": "雅虎财经"},
+            {"title": "美联储暗示今年晚些时候降息", "url": "https://example.com/news_fed_rates", "source": "路透社"},
+            {"title": "油价因供应担忧上涨", "url": "https://example.com/news_oil_prices", "source": "路透社"},
+            {"title": "零售销售额意外放缓", "url": "https://example.com/news_retail_slowdown", "source": "雅虎财经"},
         ]
         sample_market_data = {
             "S&P 500": {"price": "5450.20", "change": "+25.80", "change_percent": "+0.48%"},
             "NASDAQ Composite": {"price": "17800.90", "change": "+150.10", "change_percent": "+0.85%"},
         }
 
-        print("\nTest Case 1: With news and market data")
+        print("\n测试用例 1：包含新闻和市场数据")
         try:
             summary = await generate_summary_from_llm(sample_news, sample_market_data)
-            print("Generated Summary (Test Case 1):")
-            print(json.dumps(summary, indent=2))
+            print("生成的摘要（测试用例 1）：")
+            print(json.dumps(summary, indent=2, ensure_ascii=False))
         except ValueError as e:
-            print(f"Error in Test Case 1: {e}")
+            print(f"测试用例 1 出错：{e}")
 
-        print("\nTest Case 2: With empty news and market data")
+        print("\n测试用例 2：包含空新闻和市场数据")
         try:
             summary_empty = await generate_summary_from_llm([], {})
-            print("Generated Summary (Test Case 2):")
-            print(json.dumps(summary_empty, indent=2))
+            print("生成的摘要（测试用例 2）：")
+            print(json.dumps(summary_empty, indent=2, ensure_ascii=False))
         except ValueError as e:
-            print(f"Error in Test Case 2: {e}")
+            print(f"测试用例 2 出错：{e}")
 
-        print("\nTest Case 3: With news and N/A market data")
+        print("\n测试用例 3：包含新闻和 N/A 市场数据")
         sample_market_data_na = {
             "S&P 500": {"price": "N/A", "change": "N/A", "change_percent": "N/A"},
             "NASDAQ Composite": {"price": "N/A", "change": "N/A", "change_percent": "N/A"},
         }
         try:
             summary_na_market = await generate_summary_from_llm(sample_news, sample_market_data_na)
-            print("Generated Summary (Test Case 3):")
-            print(json.dumps(summary_na_market, indent=2))
+            print("生成的摘要（测试用例 3）：")
+            print(json.dumps(summary_na_market, indent=2, ensure_ascii=False))
         except ValueError as e:
-            print(f"Error in Test Case 3: {e}")
+            print(f"测试用例 3 出错：{e}")
 
 
     import asyncio
