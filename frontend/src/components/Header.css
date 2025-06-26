@@ -1,0 +1,22 @@
+/* Header.css */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) 0 var(--spacing-md) 0; /* Adjusted padding: sm top, md bottom, 0 left/right */
+  margin-bottom: var(--spacing-lg); /* Spacing after header */
+  border-bottom: 1px solid var(--color-border); /* Thin line separator */
+  /* No background or shadow, it's not a card */
+}
+
+.app-header .logo {
+  font-size: 1.8rem; /* Large and distinct */
+  font-weight: 700; /* Bold */
+  /* A custom font could be applied here if available */
+  /* color: var(--color-text); Default text color is fine */
+}
+
+.app-header .report-date {
+  font-size: 0.9rem;
+  color: var(--color-text); /* Clearly visible but not overly prominent */
+}

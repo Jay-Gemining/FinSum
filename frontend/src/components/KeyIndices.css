@@ -1,0 +1,53 @@
+/* KeyIndices.css */
+.key-indices h2 {
+  font-size: 1.1rem; /* Consistent with other card titles */
+  color: var(--color-neutral);
+  margin-bottom: var(--spacing-md);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.indices-container {
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens if needed */
+  gap: var(--spacing-lg); /* Space between index cards */
+  justify-content: space-between; /* Distribute space for 2 items */
+}
+
+.index-card {
+  flex: 1; /* Each card takes equal space */
+  min-width: 200px; /* Minimum width before wrapping or shrinking too much */
+  padding: var(--spacing-md);
+  background-color: #2a2a2a; /* Slightly different background for sub-cards */
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.index-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-text);
+}
+
+.index-card .index-price {
+  font-size: 1.75rem; /* "字体最大最显眼" */
+  font-weight: bold;
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-text);
+}
+
+.index-card .index-change {
+  font-size: 1rem;
+  /* Color is applied via utility classes .text-positive or .text-negative */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 600px) {
+  .indices-container {
+    flex-direction: column; /* Stack index cards vertically */
+    gap: var(--spacing-md);
+  }
+  .index-card {
+    min-width: 100%; /* Full width when stacked */
+  }
+}

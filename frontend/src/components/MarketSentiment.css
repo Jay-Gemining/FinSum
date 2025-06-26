@@ -1,0 +1,17 @@
+/* MarketSentiment.css */
+.market-sentiment h2 {
+  font-size: 1.1rem; /* Consistent with other card titles */
+  color: var(--color-neutral);
+  margin-bottom: var(--spacing-md);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Badge styling is in index.css under .sentiment-badge and variants */
+
+.market-sentiment .sentiment-reason {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-text);
+  margin-top: var(--spacing-sm);
+}
