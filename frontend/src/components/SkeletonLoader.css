@@ -1,0 +1,94 @@
+/* SkeletonLoader.css */
+
+.skeleton-container {
+  /* Uses variables from index.css */
+  max-width: 800px; /* Same as #root */
+  margin: 0 auto;
+  /* padding is handled by individual skeleton cards if needed, or can be added here */
+}
+
+.skeleton-line {
+  background-color: #333; /* Darker shade for skeleton lines */
+  border-radius: var(--border-radius-sm);
+  margin-bottom: var(--spacing-sm); /* Default margin, can be overridden */
+  animation: pulse 1.5s infinite ease-in-out;
+  min-height: 1em; /* Ensure lines are visible even if text content is short */
+}
+
+.skeleton-card, .skeleton-header {
+  background-color: var(--color-card-bg);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  overflow: hidden; /* Important for the animation */
+}
+
+.skeleton-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border); /* Match Header component */
+  padding-bottom: var(--spacing-md); /* Match Header component */
+  margin-bottom: var(--spacing-lg); /* Match Header component */
+}
+
+
+.skeleton-indices-grid {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.skeleton-index-item {
+  flex: 1;
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border); /* Mimic sub-card structure */
+  border-radius: var(--border-radius-sm);
+}
+
+.skeleton-story-item {
+  margin-bottom: var(--spacing-md);
+}
+
+.skeleton-separator {
+  height: 1px;
+  background-color: var(--color-border);
+  margin: var(--spacing-md) 0;
+}
+
+.skeleton-footer {
+  text-align: center;
+  padding: var(--spacing-md) 0;
+  margin-top: var(--spacing-lg);
+}
+
+
+/* Animation for the skeleton */
+@keyframes pulse {
+  0% {
+    background-color: #3a3a3a; /* Slightly lighter shade */
+  }
+  50% {
+    background-color: #2c2c2c; /* Base skeleton color */
+  }
+  100% {
+    background-color: #3a3a3a; /* Slightly lighter shade */
+  }
+}
+
+/* Ensure the skeleton lines don't have massive heights by default if used in flex containers */
+.skeleton-line {
+  height: 1em; /* Default height, adjust with inline styles for specific lines */
+}
+
+/* Specific adjustments based on SkeletonLoader.jsx structure */
+.skeleton-header .skeleton-line {
+  margin-bottom: 0; /* Remove bottom margin for header lines */
+}
+
+.skeleton-card .skeleton-line:last-child {
+  margin-bottom: 0; /* Remove bottom margin for the last line in a card section */
+}
+
+.skeleton-index-item .skeleton-line {
+   margin-bottom: var(--spacing-xs); /* Tighter spacing within index items */
+}

@@ -1,0 +1,15 @@
+/* ExecutiveSummary.css */
+.executive-summary h2 {
+  font-size: 1.1rem; /* "小标题" */
+  color: var(--color-neutral);
+  margin-bottom: var(--spacing-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.executive-summary .summary-text {
+  font-size: 1.4rem; /* "字体稍大" */
+  font-weight: bold;   /* "加粗" */
+  line-height: 1.5;
+  color: var(--color-text); /* Ensure good contrast */
+}

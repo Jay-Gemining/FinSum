@@ -1,0 +1,52 @@
+/* TopStories.css */
+.top-stories h2 {
+  font-size: 1.1rem; /* Consistent with other card titles */
+  color: var(--color-neutral);
+  margin-bottom: var(--spacing-md);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stories-list {
+  display: flex;
+  flex-direction: column;
+  /* gap is removed; spacing handled by separator or item margins */
+}
+
+.story-item {
+  /* Add padding if separator is inside, or margin if separator is between items */
+  /* If separator is used as <hr/> between items, no specific margin needed here unless desired */
+}
+
+.story-item .story-title {
+  font-size: 1.15rem;
+  font-weight: bold; /* "加粗" */
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-text);
+}
+
+.story-item .story-summary {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text); /* Standard text color */
+}
+
+.story-item .story-source {
+  font-size: 0.85rem;
+  margin-bottom: var(--spacing-xs); /* Add a little space at the bottom of a story item */
+}
+
+.story-item .story-source a {
+  color: var(--color-link); /* "品牌蓝色显示" */
+  font-weight: 500;
+}
+.story-item .story-source a:hover {
+  text-decoration: underline;
+}
+
+.story-separator {
+  border: 0;
+  border-top: 1px solid var(--color-border); /* "细线分隔" */
+  margin: var(--spacing-md) 0; /* Vertical margin for the separator */
+}
