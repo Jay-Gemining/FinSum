@@ -7,9 +7,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8000', // Your backend server
+        target: 'http://localhost:8000', // 你的后端服务器
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api') // Ensure /api prefix is maintained
+        rewrite: (path) => path.replace(/^\/api/, '/api') // 确保 /api 前缀被保留
       }
     }
   }

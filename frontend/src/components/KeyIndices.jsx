@@ -2,19 +2,19 @@ import React from 'react';
 import './KeyIndices.css';
 
 const IndexCard = ({ name, price, change, changePercent }) => {
-  // Determine class for text color based on change value
-  let changeClass = 'text-neutral'; // Default to neutral
+  // 根据变化值确定文本颜色的类名
+  let changeClass = 'text-neutral'; // 默认为中性
   if (change && typeof change === 'string' && change !== "N/A") {
     if (change.startsWith('+')) {
       changeClass = 'text-positive';
     } else if (change.startsWith('-')) {
       changeClass = 'text-negative';
     }
-    // If it's "0.00" or similar without a sign, it remains neutral or could be styled distinctly if needed
+    // 如果是 "0.00" 或类似没有符号的值，则保持中性，或者如果需要可以设置独特的样式
   }
 
   return (
-    <div className="index-card"> {/* This is the sub-card */}
+    <div className="index-card"> {/* 这是子卡片 */}
       <h3>{name}</h3>
       <p className="index-price">{price || 'N/A'}</p>
       <p className={`index-change ${changeClass}`}>
@@ -26,19 +26,19 @@ const IndexCard = ({ name, price, change, changePercent }) => {
 
 const KeyIndices = ({ indices }) => {
   if (!indices || Object.keys(indices).length === 0) {
-    // Optionally, render a placeholder or message if indices are expected but missing
+    // 可选：如果预期有指数但缺失，则渲染占位符或消息
     return (
         <section className="key-indices card">
             <h2>关键指数</h2>
-            <p>Market data is currently unavailable.</p>
+            <p>市场数据当前不可用。</p>
         </section>
     );
   }
 
   return (
-    <section className="key-indices card"> {/* This is the main card */}
+    <section className="key-indices card"> {/* 这是主卡片 */}
       <h2>关键指数</h2>
-      <div className="indices-container"> {/* Flex/Grid container for sub-cards */}
+      <div className="indices-container"> {/* 子卡片的 Flex/Grid 容器 */}
         {Object.entries(indices).map(([name, data]) => (
           <IndexCard
             key={name}

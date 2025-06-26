@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // Using axios for API calls
+import axios from 'axios'; // 使用 axios 进行 API 调用
 
 import Header from './components/Header';
 import ExecutiveSummary from './components/ExecutiveSummary';
@@ -7,7 +7,7 @@ import MarketSentiment from './components/MarketSentiment';
 import KeyIndices from './components/KeyIndices';
 import TopStories from './components/TopStories';
 import Footer from './components/Footer';
-import SkeletonLoader from './components/SkeletonLoader'; // Will create this next
+import SkeletonLoader from './components/SkeletonLoader'; // 稍后将创建此组件
 
 function App() {
   const [reportData, setReportData] = useState(null);
@@ -18,12 +18,12 @@ function App() {
     setIsLoading(true);
     setError(null);
     try {
-      // The vite.config.js proxy will redirect this to http://localhost:8000/api/report
+      // vite.config.js 代理会将此请求重定向到 http://localhost:8000/api/report
       const response = await axios.get('/api/report');
       setReportData(response.data);
     } catch (err) {
-      console.error("Error fetching report:", err);
-      setError(err.response?.data?.detail || "Report generation failed. Please try again later.");
+      console.error("获取报告时出错:", err);
+      setError(err.response?.data?.detail || "报告生成失败。请稍后再试。");
     } finally {
       setIsLoading(false);
     }
@@ -31,7 +31,7 @@ function App() {
 
   useEffect(() => {
     fetchReport();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []); // 空依赖数组表示此 effect 仅在挂载时运行一次
 
   if (isLoading) {
     return <SkeletonLoader />;
@@ -40,11 +40,11 @@ function App() {
   if (error) {
     return (
       <div className="container">
-        <Header reportDate={new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} />
+        <Header reportDate={new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', year: 'numeric' })} />
         <div className="error-message card">
-          <h2>Error</h2>
+          <h2>错误</h2>
           <p>{error}</p>
-          <button onClick={fetchReport} style={{marginTop: '1rem'}}>Retry</button>
+          <button onClick={fetchReport} style={{marginTop: '1rem'}}>重试</button>
         </div>
         <Footer />
       </div>
@@ -52,11 +52,11 @@ function App() {
   }
 
   if (!reportData) {
-    // Should ideally not happen if not loading and no error, but as a fallback
+    // 理想情况下，如果未加载且没有错误，则不应发生这种情况，但作为后备
     return (
         <div className="container">
-            <Header reportDate={new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} />
-            <div className="loading-message card"><p>No report data available.</p></div>
+            <Header reportDate={new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', year: 'numeric' })} />
+            <div className="loading-message card"><p>没有可用的报告数据。</p></div>
             <Footer />
         </div>
     );
