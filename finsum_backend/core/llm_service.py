@@ -1,171 +1,174 @@
 import os
 import json
-import random
-# from openai import OpenAI # 这才是 OpenAI 的实际导入语句
+import xml.etree.ElementTree as ET
+from openai import OpenAI # 这才是 OpenAI 的实际导入语句
 
-# 尝试获取 API 密钥（尽管在模拟版本中不会使用）
-# OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-# if not OPENAI_API_KEY:
-# print("警告：未设置 OPENAI_API_KEY 环境变量。LLM 调用将被模拟。")
-# client = None
-# else:
-# client = OpenAI(api_key=OPENAI_API_KEY)
+# 尝试获取 API 密钥
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+client = None
+if not OPENAI_API_KEY:
+    print("警告：未设置 OPENAI_API_KEY 环境变量。LLM 调用将无法进行。")
+else:
+    client = OpenAI(api_key=OPENAI_API_KEY)
 
 
-def get_mock_llm_response(news_items: list, market_data: dict) -> dict:
+def xml_to_dict(xml_string: str) -> dict:
     """
-    根据输入数据生成模拟的 LLM 响应，并遵循 PRD 的 JSON 结构。
+    将LLM返回的XML字符串转换为符合前端期望的字典结构。
     """
-    sentiments = ["乐观", "悲观", "中性", "复杂"]
-    chosen_sentiment = random.choice(sentiments)
+    root = ET.fromstring(xml_string)
 
-    executive_summary = "今日市场活动显著，各板块走势分化。"
-    if market_data:
-        sp500_change = market_data.get("S&P 500", {}).get("change_percent", "0%")
-        nasdaq_change = market_data.get("NASDAQ Composite", {}).get("change_percent", "0%")
-        if "N/A" not in sp500_change and "N/A" not in nasdaq_change:
-             executive_summary = f"市场呈现{chosen_sentiment.lower()}趋势；标普 500 指数变动 {sp500_change}，纳斯达克指数变动 {nasdaq_change}。"
+    data = {}
 
+    executive_summary_el = root.find("executive_summary")
+    if executive_summary_el is not None:
+        data["executive_summary"] = executive_summary_el.text
+    else:
+        data["executive_summary"] = "执行摘要不可用。"
 
-    sentiment_reason = f"由于今日交易时段和新闻流中观察到的多种因素，市场情绪为{chosen_sentiment.lower()}。"
-    if chosen_sentiment == "乐观":
-        sentiment_reason = "积极的经济指标和关键行业强劲的企业盈利促成了乐观的前景。"
-    elif chosen_sentiment == "悲观":
-        sentiment_reason = "对通货膨胀和潜在加息的担忧导致投资者情绪悲观。"
-    elif chosen_sentiment == "中性":
-        sentiment_reason = "市场没有明确的方向，一些行业的上涨被其他行业的下跌所抵消，导致了中性的立场。"
-    elif chosen_sentiment == "复杂":
-        sentiment_reason = "由于积极的科技股表现与更广泛的市场不确定性形成对比，市场情绪复杂。"
+    market_sentiment_el = root.find("market_sentiment")
+    if market_sentiment_el is not None:
+        sentiment_el = market_sentiment_el.find("sentiment")
+        reason_el = market_sentiment_el.find("reason")
+        data["market_sentiment"] = {
+            "sentiment": sentiment_el.text if sentiment_el is not None else "未知",
+            "reason": reason_el.text if reason_el is not None else "原因不可用。"
+        }
+    else:
+        data["market_sentiment"] = {"sentiment": "未知", "reason": "原因不可用。"}
 
-    top_stories_mock = []
-    if news_items:
-        # 为模拟摘要选择最多 3 个新闻条目
-        selected_news = news_items[:3]
-        for i, news_item in enumerate(selected_news):
-            top_stories_mock.append({
-                "title": news_item.get("title", f"示例新闻标题 {i+1}"),
-                "summary": f"这是针对“{news_item.get('title', '此新闻条目')}”的模拟 LLM 摘要。它突出了关键方面和潜在的市场影响。内容是为测试目的生成的。",
-                "url": news_item.get("url", "#"),
-                "source": news_item.get("source", "MockSource")
+    top_stories_el = root.find("top_stories")
+    stories_list = []
+    if top_stories_el is not None:
+        for story_el in top_stories_el.findall("story"):
+            title_el = story_el.find("title")
+            summary_el = story_el.find("summary")
+            url_el = story_el.find("url")
+            source_el = story_el.find("source")
+            stories_list.append({
+                "title": title_el.text if title_el is not None else "标题不可用",
+                "summary": summary_el.text if summary_el is not None else "摘要不可用。",
+                "url": url_el.text if url_el is not None else "#",
+                "source": source_el.text if source_el is not None else "来源不可用"
             })
-    else: # 如果没有新闻条目则回退
-        for i in range(3):
-            top_stories_mock.append({
-                "title": f"占位新闻标题 {i+1}",
-                "summary": "这是一个占位摘要，因为没有向 LLM 提供特定的新闻条目。",
-                "url": "#",
-                "source": "PlaceholderSource"
-            })
-
-
-    return {
-        "executive_summary": executive_summary,
-        "market_sentiment": {
-            "sentiment": chosen_sentiment,
-            "reason": sentiment_reason
-        },
-        "top_stories": top_stories_mock
-    }
+    data["top_stories"] = stories_list
+    return data
 
 async def generate_summary_from_llm(news_items: list, market_data: dict) -> dict:
     """
-    生成市场摘要。目前使用模拟响应。
-    构建提示（用于将来实际的 LLM 调用）并期望 JSON 响应。
+    生成市场摘要。调用真实的 LLM 服务并期望 XML 响应，然后将其转换为 JSON。
     """
-    print("正在尝试从 LLM 生成摘要（当前为模拟）...")
+    if not client:
+        print("错误：OpenAI API 客户端未初始化。请检查 OPENAI_API_KEY 环境变量。")
+        # 返回一个表示错误的结构，以便前端可以显示
+        return {
+            "executive_summary": "LLM 服务配置错误。",
+            "market_sentiment": {"sentiment": "错误", "reason": "OpenAI API 客户端未初始化。"},
+            "top_stories": []
+        }
 
-    # 根据 PRD F3 构建提示（对将来实际实现有用）
+    print("正在尝试从 LLM 生成摘要...")
+
     prompt_content = f"""
-    分析以下金融市场数据和新闻条目。
-    以 JSON 格式提供简洁、数据驱动的摘要。
+    请分析以下金融市场数据和新闻条目。
+    请以 XML 格式提供简洁、数据驱动的摘要。XML 结构必须如下所示：
+    <report>
+      <executive_summary>总结当日市场活动和整体基调的一句话。</executive_summary>
+      <market_sentiment>
+        <sentiment>乐观、悲观、中性或复杂中的一个</sentiment>
+        <reason>简要解释驱动这种情绪的因素，可参考市场数据或新闻。</reason>
+      </market_sentiment>
+      <top_stories>
+        <story>
+          <title>新闻报道的原始标题</title>
+          <summary>对新闻报道及其潜在市场影响的简洁摘要（2-3句话）</summary>
+          <url>新闻报道的原始URL</url>
+          <source>新闻的原始来源（例如，路透社）</source>
+        </story>
+        <!-- 最多重复3次 story 元素 -->
+      </top_stories>
+    </report>
 
     市场数据:
     {json.dumps(market_data, indent=2)}
 
-    新闻条目（提供前 10 条，选择并总结影响最大的 3 条）:
+    新闻条目 (提供前 10 条，请选择并总结影响最大的 3 条):
     {json.dumps(news_items, indent=2)}
 
-    说明:
-    1.  "executive_summary": 一个高度浓缩的句子，总结当天的市场活动和整体基调。
-    2.  "market_sentiment":
-        *   "sentiment": 选择一个："乐观"、"悲观"、"中性"、"复杂"。
-        *   "reason": 简要解释驱动这种情绪的因素，如果适用，请参考市场数据或新闻。
-    3.  "top_stories": 一个包含正好 3 个对象的数组，每个对象代表一个关键新闻报道。对于每个报道：
-        *   "title": 新闻报道的原始标题。
-        *   "summary": 您对新闻报道及其潜在市场影响的简洁摘要（2-3 句话）。
-        *   "url": 新闻报道的原始 URL。
-        *   "source": 新闻的原始来源（例如，“路透社”、“雅虎财经”）。
-
-    仅返回 JSON 对象，不含其他文本或解释。
-    JSON 结构必须是:
-    {{
-      "executive_summary": "string",
-      "market_sentiment": {{
-        "sentiment": "string",
-        "reason": "string"
-      }},
-      "top_stories": [
-        {{
-          "title": "string",
-          "summary": "string",
-          "url": "string",
-          "source": "string"
-        }}
-      ]
-    }}
+    请仅返回 <report>...</report> XML 结构，不要包含任何其他文本或解释。
     """
 
-    # if client:
-    #     try:
-    #         print("正在对 OpenAI API 进行实际调用...") # 如果 client 为 None，则此部分不会运行
-    #         response = await client.chat.completions.create( # 如果可用，则对异步客户端使用 await，否则使用同步
-    #             model="gpt-3.5-turbo-0125", # 或您首选的支持 JSON 模式的模型
-    #             messages=[{"role": "system", "content": "你是一个财经新闻摘要器。以 JSON 格式回应。"},
-    #                       {"role": "user", "content": prompt_content}],
-    #             response_format={"type": "json_object"}
-    #         )
-    #         llm_output_json_str = response.choices[0].message.content
-    #         print("已收到来自 OpenAI API 的响应。")
-    #     except Exception as e:
-    #         print(f"调用 OpenAI API 时出错：{e}")
-    #         print("由于 API 错误，将回退到模拟的 LLM 响应。")
-    #         llm_output_json_str = json.dumps(get_mock_llm_response(news_items, market_data))
-    # else:
-    #     # 如果 API 密钥不可用或客户端未初始化，则进行模拟的 LLM 调用
-    #     print("正在使用模拟的 LLM 响应。")
-    llm_output_json_str = json.dumps(get_mock_llm_response(news_items, market_data))
+    llm_output_xml_str = ""
+    try:
+        print("正在对 OpenAI API 进行实际调用...")
+        # 注意：OpenAI SDK v1.x.x 使用 client.chat.completions.create
+        # response_format={"type": "text"} 因为我们要求自定义 XML，而不是 JSON 对象模式。
+        response = await client.chat.completions.create(
+            model="gpt-3.5-turbo", # 或者您偏好的模型
+            messages=[
+                {"role": "system", "content": "你是一个财经新闻摘要器。请严格按照要求的XML格式回应。"},
+                {"role": "user", "content": prompt_content}
+            ],
+            temperature=0.7, # 可以调整以获得或多或少的创意性回答
+        )
+        llm_output_xml_str = response.choices[0].message.content
+        print("已收到来自 OpenAI API 的响应。")
+        # 移除代码块标记 (如果LLM意外添加了)
+        llm_output_xml_str = llm_output_xml_str.strip()
+        if llm_output_xml_str.startswith("```xml"):
+            llm_output_xml_str = llm_output_xml_str[len("```xml"):]
+        if llm_output_xml_str.endswith("```"):
+            llm_output_xml_str = llm_output_xml_str[:-len("```")]
+        llm_output_xml_str = llm_output_xml_str.strip()
+
+    except Exception as e:
+        print(f"调用 OpenAI API 时出错：{e}")
+        # 在API调用失败时返回错误信息
+        return {
+            "executive_summary": "调用 LLM API 时出错。",
+            "market_sentiment": {"sentiment": "错误", "reason": f"API 调用失败: {e}"},
+            "top_stories": []
+        }
 
     try:
-        parsed_response = json.loads(llm_output_json_str)
-        # 根据 PRD 结构进行基本验证
-        if not all(key in parsed_response for key in ["executive_summary", "market_sentiment", "top_stories"]):
-            raise ValueError("LLM 响应缺少一个或多个主要密钥。")
-        if not isinstance(parsed_response["market_sentiment"], dict) or \
-           not all(key in parsed_response["market_sentiment"] for key in ["sentiment", "reason"]):
-             raise ValueError("LLM 响应缺少 market_sentiment 密钥。")
-        if not isinstance(parsed_response["top_stories"], list):
-            raise ValueError("LLM 响应 'top_stories' 不是列表。")
-        # 如果需要，可以为每个报道项目添加更多验证。
+        # 将XML转换为字典
+        parsed_response_dict = xml_to_dict(llm_output_xml_str)
 
-        print("LLM 响应已成功解析和验证。")
-        return parsed_response
-    except json.JSONDecodeError as e:
-        print(f"严重：解码 LLM JSON 响应时出错：{e}。响应为：{llm_output_json_str}")
-        raise ValueError(f"LLM 返回了格式错误的 JSON。内容：{llm_output_json_str[:500]}...") # 显示部分内容
-    except ValueError as e:
-        print(f"严重：LLM 响应验证错误：{e}。响应为：{llm_output_json_str}")
+        # 基本验证 (可以根据xml_to_dict的行为调整)
+        if not all(key in parsed_response_dict for key in ["executive_summary", "market_sentiment", "top_stories"]):
+            raise ValueError("从XML转换后的字典缺少一个或多个主要密钥。")
+        if not isinstance(parsed_response_dict["market_sentiment"], dict) or \
+           not all(key in parsed_response_dict["market_sentiment"] for key in ["sentiment", "reason"]):
+             raise ValueError("从XML转换后的字典缺少 market_sentiment 密钥。")
+        if not isinstance(parsed_response_dict["top_stories"], list):
+            raise ValueError("从XML转换后的字典 'top_stories' 不是列表。")
+
+        print("LLM XML响应已成功解析并转换为JSON兼容的字典。")
+        return parsed_response_dict
+    except ET.ParseError as e:
+        print(f"严重：解析 LLM XML 响应时出错：{e}。响应为：\n{llm_output_xml_str}")
+        raise ValueError(f"LLM 返回了格式错误的 XML。内容：{llm_output_xml_str[:500]}...")
+    except ValueError as e: # 捕捉自定义的验证错误
+        print(f"严重：LLM XML 内容验证错误：{e}。XML响应为：\n{llm_output_xml_str}")
         raise # 重新引发 ValueError 以供调用者处理
+    except Exception as e: # 捕获其他意外错误
+        print(f"严重：处理 LLM 响应时发生未知错误：{e}。XML响应为：\n{llm_output_xml_str}")
+        raise ValueError(f"处理 LLM 响应时发生未知错误。")
 
 
 if __name__ == '__main__':
     # 示例用法（用于直接测试此模块）
     async def main_test():
-        print("\n--- 测试 LLM 服务（模拟）---")
+        if not OPENAI_API_KEY:
+            print("未设置 OPENAI_API_KEY，跳过 LLM 服务测试。")
+            return
+
+        print("\n--- 测试 LLM 服务 (实际调用) ---")
         sample_news = [
             {"title": "科技股在人工智能热潮中持续上涨", "url": "https://example.com/news_tech_rally", "source": "雅虎财经"},
             {"title": "美联储暗示今年晚些时候降息", "url": "https://example.com/news_fed_rates", "source": "路透社"},
             {"title": "油价因供应担忧上涨", "url": "https://example.com/news_oil_prices", "source": "路透社"},
-            {"title": "零售销售额意外放缓", "url": "https://example.com/news_retail_slowdown", "source": "雅虎财经"},
+            # {"title": "零售销售额意外放缓", "url": "https://example.com/news_retail_slowdown", "source": "雅虎财经"},
         ]
         sample_market_data = {
             "S&P 500": {"price": "5450.20", "change": "+25.80", "change_percent": "+0.48%"},
@@ -179,26 +182,16 @@ if __name__ == '__main__':
             print(json.dumps(summary, indent=2, ensure_ascii=False))
         except ValueError as e:
             print(f"测试用例 1 出错：{e}")
+        except Exception as e:
+            print(f"测试用例 1 发生意外错误：{e}")
 
-        print("\n测试用例 2：包含空新闻和市场数据")
-        try:
-            summary_empty = await generate_summary_from_llm([], {})
-            print("生成的摘要（测试用例 2）：")
-            print(json.dumps(summary_empty, indent=2, ensure_ascii=False))
-        except ValueError as e:
-            print(f"测试用例 2 出错：{e}")
-
-        print("\n测试用例 3：包含新闻和 N/A 市场数据")
-        sample_market_data_na = {
-            "S&P 500": {"price": "N/A", "change": "N/A", "change_percent": "N/A"},
-            "NASDAQ Composite": {"price": "N/A", "change": "N/A", "change_percent": "N/A"},
-        }
-        try:
-            summary_na_market = await generate_summary_from_llm(sample_news, sample_market_data_na)
-            print("生成的摘要（测试用例 3）：")
-            print(json.dumps(summary_na_market, indent=2, ensure_ascii=False))
-        except ValueError as e:
-            print(f"测试用例 3 出错：{e}")
+        # print("\n测试用例 2：包含空新闻和市场数据")
+        # try:
+        #     summary_empty = await generate_summary_from_llm([], {})
+        #     print("生成的摘要（测试用例 2）：")
+        #     print(json.dumps(summary_empty, indent=2, ensure_ascii=False))
+        # except ValueError as e:
+        #     print(f"测试用例 2 出错：{e}")
 
 
     import asyncio

@@ -2,4 +2,4 @@ fastapi
 uvicorn[standard]
 httpx
 beautifulsoup4
-# openai # Add when actual LLM integration is implemented
+openai # Add when actual LLM integration is implemented
